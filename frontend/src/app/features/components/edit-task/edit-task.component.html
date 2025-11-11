@@ -1,0 +1,35 @@
+<div class="edit-task-container">
+  <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
+    <h2>Editează Task</h2>
+
+    <div>
+      <label for="title">Titlu:</label><br>
+      <input id="title" type="text" formControlName="title">
+      <div *ngIf="taskForm.get('title')?.invalid && taskForm.get('title')?.touched" class="error">
+        Titlul este obligatoriu.
+      </div>
+    </div>
+
+    <div>
+      <label for="description">Descriere:</label><br>
+      <textarea id="description" formControlName="description"></textarea>
+    </div>
+
+    <div>
+      <label for="deadline">Deadline:</label><br>
+      <input id="deadline" type="date" formControlName="deadline">
+      <div *ngIf="taskForm.get('deadline')?.invalid && taskForm.get('deadline')?.touched" class="error">
+        Deadline-ul este obligatoriu.
+      </div>
+    </div>
+
+    <div>
+      <label>
+        <input type="checkbox" formControlName="status"> Finalizat
+      </label>
+    </div>
+
+    <br>
+    <button type="submit" [disabled]="taskForm.invalid">Salvează</button>
+  </form>
+</div>

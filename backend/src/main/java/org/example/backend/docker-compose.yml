@@ -1,0 +1,15 @@
+services:
+  my_database:
+    container_name: hotelguest
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: my_very_strongPassword#
+      POSTGRES_DB: HotelAndGuests
+    ports:
+      - 1234:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

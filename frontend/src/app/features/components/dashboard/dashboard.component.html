@@ -1,0 +1,52 @@
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h2>Taskurile tale</h2>
+    <button class="btn-add-task" (click)="toggleAddTask()">Add new task</button>
+    <button class="btn-sort" (click)="sortByDeadline()">Sortare</button>
+    <button class="btn-logout" (click)="logout()">Logout</button>
+  </div>
+
+  <div *ngIf="showAddForm" class="add-task-form">
+    <h3>Adaugă un nou task</h3>
+    <form (ngSubmit)="submitTask()" #taskForm="ngForm">
+      <input type="text" name="title" [(ngModel)]="newTask.title" placeholder="Titlu" required>
+      <textarea name="description" [(ngModel)]="newTask.description" placeholder="Descriere" required></textarea>
+      <input type="date" name="deadline" [(ngModel)]="newTask.deadline" required>
+      <button type="submit" class="btn-submit">Submit</button>
+    </form>
+  </div>
+
+  <!--  <h2>Taskurile tale</h2>-->
+
+  <div *ngIf="tasks.length === 0" class="empty-message">
+    Nu ai niciun task atribuit.
+  </div>
+
+  <table *ngIf="tasks.length > 0" class="task-table">
+    <thead>
+    <tr>
+      <th>Titlu</th>
+      <th>Descriere</th>
+      <th>Deadline</th>
+      <th>Status</th>
+      <th>Acțiuni</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let task of tasks" [class.completed]="task.status" [class.pending]="!task.status">
+      <td>{{ task.title }}</td>
+      <td>{{ task.description }}</td>
+      <td>{{ task.deadline | date: 'dd/MM/yyyy' }}</td>
+      <td>
+          <span [ngClass]="task.status ? 'badge-done' : 'badge-pending'">
+            {{ task.status ? 'Finalizat' : 'În desfășurare' }}
+          </span>
+      </td>
+      <td>
+        <button (click)="deleteTask(task.id)" class="btn-delete">Șterge</button>
+        <button (click)="editTask(task.id)" class="btn-edit">Editează</button>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>

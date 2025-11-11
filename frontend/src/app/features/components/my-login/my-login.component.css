@@ -1,0 +1,17 @@
+.welcome_text{
+  text-align: center;
+  font-weight: bold;
+  color: darkcyan;
+}
+
+.login_container{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 100vh;
+}
+
+.login_form{
+
+}

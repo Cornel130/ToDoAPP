@@ -1,0 +1,30 @@
+<div class="login_container">
+  <form class="login_form" [formGroup]="loginForm" #formDirective="ngForm" (ngSubmit)="onSubmit(formDirective)">
+    <h2 class="welcome_text">Welcome to your ToDo App!</h2>
+
+    <div>
+      <mat-form-field appearance="fill">
+        <mat-label>Enter username:</mat-label>
+        <input type="text" formControlName="username" matInput />
+      </mat-form-field>
+    </div>
+
+    <div>
+      <mat-form-field appearance="fill">
+        <mat-label>Enter password:</mat-label>
+        <input type="password" formControlName="password" matInput />
+      </mat-form-field>
+    </div>
+
+    <button type="submit" mat-raised-button color="primary">Submit</button>
+
+    <!-- Afișare eroare elegantă -->
+    <div *ngIf="errorMessage()" class="login-error">
+      {{ errorMessage() }}
+    </div>
+
+    <a routerLink="/register" class="register-link">
+      Don't have an account? Register here!
+    </a>
+  </form>
+</div>
