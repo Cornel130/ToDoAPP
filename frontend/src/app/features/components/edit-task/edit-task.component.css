@@ -1,86 +1,84 @@
-/* ✅ edit-task.component.css îmbunătățit pentru centrarea în pagină */
-
-body, html {
-  height: 100%;
-  margin: 0;
-}
-
 .edit-task-container {
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background-color: #f0f2f5;
+  background: #f5f6fa;
+  padding: 24px;
 }
 
-form {
+.edit-task-form {
   width: 100%;
-  max-width: 500px;
-  background-color: #ffffff;
-  border: 1px solid #ddd;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+  max-width: 520px;
+  background: #ffffff;
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
-form h2 {
+.edit-task-form h2 {
+  margin-top: 0;
+  margin-bottom: 24px;
   text-align: center;
-  margin-bottom: 20px;
-  color: #333;
+  color: #1f1f1f;
 }
 
-label {
-  font-weight: 500;
-  margin-bottom: 5px;
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
   display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
   color: #333;
 }
 
-input[type="text"],
-input[type="date"],
-textarea {
+.form-group input,
+.form-group textarea {
   width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: 12px 14px;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
   font-size: 14px;
   box-sizing: border-box;
 }
 
-textarea {
-  min-height: 80px;
+.form-group textarea {
+  min-height: 110px;
   resize: vertical;
 }
 
-input[type="checkbox"] {
-  margin-right: 5px;
+.checkbox-group {
+  margin-bottom: 20px;
+  font-size: 15px;
+  color: #333;
 }
 
-button {
+button[type="submit"] {
   width: 100%;
-  background-color: #007bff;
+  background: #1976d2;
   color: white;
   border: none;
+  border-radius: 8px;
   padding: 12px;
-  font-size: 16px;
-  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: 0.2s ease;
 }
 
-button:hover:not(:disabled) {
-  background-color: #0056b3;
+button[type="submit"]:hover {
+  background: #1565c0;
 }
 
-button:disabled {
-  background-color: #ccc;
+button[type="submit"]:disabled {
+  background: #b0bec5;
   cursor: not-allowed;
 }
 
 .error {
-  color: red;
-  font-size: 0.85rem;
-  margin-top: -10px;
-  margin-bottom: 10px;
+  color: #d32f2f;
+  font-size: 13px;
+  margin-top: 6px;
 }

@@ -2,23 +2,15 @@ import { Component, signal } from '@angular/core';
 import {
   FormControl,
   FormGroup,
-  FormGroupDirective,
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
-import { Router } from '@angular/router';
-import { LoginService } from '../../services/login/login.service';
-import { User } from '../../models/user.model';
-import {
-  MatFormFieldModule
-} from '@angular/material/form-field';
-import {
-  MatInputModule
-} from '@angular/material/input';
-import {
-  MatButtonModule
-} from '@angular/material/button';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth/auth.service';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-my-login',
@@ -29,44 +21,71 @@ import { RouterLink, RouterOutlet } from '@angular/router';
     MatInputModule,
     MatButtonModule,
     RouterLink,
-    // RouterOutlet
+    NgIf
   ],
   templateUrl: './my-login.component.html',
   styleUrls: ['./my-login.component.css']
 })
 export class MyLoginComponent {
   loginForm = new FormGroup({
-    username: new FormControl('', [Validators.required, Validators.minLength(6)]),
-    password: new FormControl('', [Validators.required, Validators.minLength(6)])
+    username: new FormControl('', [Validators.required, Validators.minLength(4)]),
+    password: new FormControl('', [Validators.required, Validators.minLength(4)])
   });
 
   errorMessage = signal<string | null>(null);
 
-  constructor(private loginService: LoginService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
-  onSubmit(formDirective: FormGroupDirective) {
-    const user = this.loginForm.value as User;
+  onSubmit(): void {
+    this.errorMessage.set(null);
 
-    this.loginService.login(user).subscribe({
-      next: (response) => {
-        console.log('Răspuns login:', response); // debug
-        localStorage.setItem('userId', response.id.toString());
-        localStorage.setItem('username', response.username);
-        this.router.navigate(['/dashboard']);
-      },
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
+    }
 
-      error: (error) => {
-        console.error('Login failed:', error); // Log full error
-        if (error.status === 0) {
-          alert('Backend is unreachable. Is Spring Boot running? Is CORS allowed?');
+    const loginData = {
+      username: this.loginForm.value.username ?? '',
+      password: this.loginForm.value.password ?? ''
+    };
+
+    this.authService.login(loginData).subscribe({
+      next: (response: any) => {
+        if (response && response.mfaRequired) {
+          if (response.mfaConfigured) {
+            this.router.navigate(['/mfa-verify']);
+          } else {
+            this.router.navigate(['/mfa-setup']);
+          }
         } else {
-          alert('Login failed: ' + error.error);
+          this.router.navigate(['/dashboard']);
+        }
+      },
+      error: (error) => {
+        if (error.status === 423) {
+          this.errorMessage.set(
+            error.error?.message ||
+            'Your account is temporarily locked due to multiple failed login attempts. Try again later.'
+          );
+        } else if (error.status === 400 || error.status === 401) {
+          const backendMessage = error.error?.message;
+
+          if (backendMessage === 'Username does not exist') {
+            this.errorMessage.set('Username does not exist');
+          } else if (backendMessage === 'Invalid password') {
+            this.errorMessage.set('Invalid password');
+          } else {
+            this.errorMessage.set(backendMessage || 'Login failed');
+          }
+        } else {
+          this.errorMessage.set(
+            error.error?.message || 'Login failed. Please try again.'
+          );
         }
       }
-
     });
-
-    this.loginForm.reset();
-    formDirective.resetForm();
   }
 }

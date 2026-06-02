@@ -8,7 +8,7 @@ import { merge } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { RegisterService } from '../../services/register/register.service';
+import { AuthService } from '../../services/auth/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -30,16 +30,17 @@ export class RegisterComponent {
   hide = signal(true);
   registerForm: FormGroup;
   emailErrorMessage = signal('');
+  errorMessage = signal('');
 
   constructor(
     private fb: FormBuilder,
-    private registerService: RegisterService,
+    private authService: AuthService,
     private router: Router
   ) {
     this.registerForm = this.fb.group({
-      username: ['', Validators.required],
+      username: ['', [Validators.required, Validators.minLength(4)]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required],
+      password: ['', [Validators.required, Validators.minLength(8)]],
     });
 
     const emailControl = this.registerForm.get('email');
@@ -67,19 +68,18 @@ export class RegisterComponent {
   }
 
   onSubmit(): void {
-    if (this.registerForm.valid) {
-      this.registerService.register(this.registerForm.value).subscribe({
-        next: () => {
-          alert('User registered successfully!');
-          this.router.navigate(['']);
-        },
-        error: (err) => {
-          console.error('🔴 Full backend error:', err);
-          alert('Registration failed: ' + (err.error?.message || JSON.stringify(err.error) || 'Unknown error'));
-        }
-      });
-    } else {
-      console.warn('⚠️ Form is invalid:', this.registerForm);
+    if (this.registerForm.invalid) {
+      return;
     }
+
+    this.authService.register(this.registerForm.value).subscribe({
+      next: () => {
+        alert('User registered successfully!');
+        this.router.navigate(['']);
+      },
+      error: (err) => {
+        this.errorMessage.set(err.error?.message || 'Registration failed');
+      }
+    });
   }
 }

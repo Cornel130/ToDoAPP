@@ -7,23 +7,27 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @Entity
-@Table(name="tasks")
+@Table(name = "tasks")
 @Getter
 @Setter
 public class Task {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name="title")
+    @Column(nullable = false)
     private String title;
-    @Column(name="description")
+
+    @Column(columnDefinition = "text")
     private String description;
-    @Column(name="status")
+
+    @Column(nullable = false)
     private boolean status;
-    @Column(name="deadline")
+
     private LocalDate deadline;
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 }

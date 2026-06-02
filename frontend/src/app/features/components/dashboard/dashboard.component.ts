@@ -1,87 +1,90 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe, NgClass } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TaskService } from '../../services/task/task.service';
-import {FormsModule} from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { TaskDTO, TaskRequest } from '../../models/task.model';
+import { AuthService } from '../../services/auth/auth.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [
-    CommonModule,
-    NgClass,
-    DatePipe,
-    FormsModule
-  ],
+  imports: [CommonModule, NgClass, DatePipe, FormsModule, RouterLink],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit {
-  tasks: Array<{
-    id: number;
-    title: string;
-    description: string;
-    status: boolean;
-    deadline: string;
-  }> = [];
-
+  tasks: TaskDTO[] = [];
   showAddForm = false;
+  minDate: string = new Date().toISOString().split('T')[0];
+  errorMessage: string = '';
+  isAdmin: boolean = false;
+  mfaEnabled: boolean = false;
 
-  newTask = {
+  newTask: TaskRequest = {
     title: '',
     description: '',
-    deadline: ''
+    deadline: '',
+    status: false
   };
 
-  constructor(private taskService: TaskService, private router: Router) {}
+  constructor(
+    private taskService: TaskService,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
-    const userIdStr = localStorage.getItem('userId');
-    if (!userIdStr) {
-      alert('Sesiunea a expirat. Te rugăm să te loghezi din nou.');
-      this.router.navigate(['']);
-      return;
-    }
+    this.isAdmin = sessionStorage.getItem('role') === 'ROLE_ADMIN';
+    this.mfaEnabled = this.authService.isMfaEnabled();
+    this.loadTasks();
+  }
 
-    const userId = +userIdStr;
-    this.taskService.getTasksByUserId(userId).subscribe(data => {
-      this.tasks = data;
+  loadTasks(): void {
+    this.taskService.getMyTasks().subscribe({
+      next: data => this.tasks = data,
+      error: err => {
+        if (err.status === 401) {
+          this.authService.logout();
+          this.router.navigate(['']);
+        }
+      }
     });
   }
 
   toggleAddTask(): void {
     this.showAddForm = !this.showAddForm;
+    this.errorMessage = '';
   }
 
   submitTask(): void {
-    const userIdStr = localStorage.getItem('userId');
-    if (!userIdStr) return;
-    const userId = +userIdStr;
+    this.errorMessage = '';
 
-    const taskToSend = {
-      ...this.newTask,
-      userId,
-      status: false
-    };
+    if (this.newTask.deadline && this.newTask.deadline < this.minDate) {
+      this.errorMessage = 'Deadline cannot be in the past.';
+      return;
+    }
 
-    this.taskService.addTask(taskToSend).subscribe({
+    this.taskService.addTask(this.newTask).subscribe({
       next: (createdTask) => {
         this.tasks.push(createdTask);
-        this.newTask = { title: '', description: '', deadline: '' };
+        this.newTask = { title: '', description: '', deadline: '', status: false };
         this.showAddForm = false;
       },
       error: err => {
-        console.error('Eroare la salvarea taskului:', err);
+        this.errorMessage = err.error?.message || 'Failed to create task.';
       }
     });
   }
 
   deleteTask(taskId: number): void {
-    if (confirm('Sigur vrei să ștergi acest task?')) {
-      this.taskService.deleteTask(taskId).subscribe(() => {
+    if (!confirm('Sigur vrei să ștergi acest task?')) return;
+
+    this.taskService.deleteTask(taskId).subscribe({
+      next: () => {
         this.tasks = this.tasks.filter(t => t.id !== taskId);
-      });
-    }
+      }
+    });
   }
 
   editTask(taskId: number): void {
@@ -89,16 +92,42 @@ export class DashboardComponent implements OnInit {
   }
 
   logout(): void {
-    localStorage.clear();
+    this.authService.logout();
     this.router.navigate(['']);
   }
 
   sortByDeadline(): void {
-    this.tasks.sort((a, b) => {
-      const dateA = new Date(a.deadline).getTime();
-      const dateB = new Date(b.deadline).getTime();
-      return dateA - dateB;
+    this.tasks.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+  }
+
+  enableMfa(): void {
+    if (!confirm('Dorești să activezi autentificarea în 2 pași? Vei fi redirecționat pentru configurare.')) return;
+    
+    this.authService.enableMfa().subscribe({
+      next: (res: any) => {
+        if (res && res.tempToken) {
+          sessionStorage.setItem('tempToken', res.tempToken);
+          this.router.navigate(['/mfa-setup']);
+        }
+      },
+      error: err => {
+        alert(err.error?.message || 'A apărut o eroare la activarea MFA.');
+      }
     });
   }
 
+  disableMfa(): void {
+    if (!confirm('Sigur vrei să DEZACTIVEZI autentificarea în 2 pași? Contul tău va fi mai puțin sigur.')) return;
+
+    this.authService.disableMfa().subscribe({
+      next: () => {
+        sessionStorage.setItem('mfaEnabled', 'false');
+        this.mfaEnabled = false;
+        alert('MFA a fost dezactivat cu succes.');
+      },
+      error: err => {
+        alert(err.error?.message || 'A apărut o eroare la dezactivarea MFA.');
+      }
+    });
+  }
 }

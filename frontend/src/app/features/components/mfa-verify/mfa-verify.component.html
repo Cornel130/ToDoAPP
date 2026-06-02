@@ -1,0 +1,70 @@
+<div class="mfa-container">
+  <div class="mfa-card">
+    <h2>Verificare de Securitate</h2>
+    
+    <div *ngIf="errorMessage()" class="error-alert">
+      {{ errorMessage() }}
+    </div>
+
+    <!-- Step 1: Choose Method -->
+    <div *ngIf="step() === 'choose'" class="step-choose">
+      <p class="subtitle">Alege cum dorești să te autentifici:</p>
+      
+      <div class="method-options">
+        <button class="btn-method primary" (click)="selectMethod('TOTP')">
+          <div class="method-icon">📱</div>
+          <div class="method-text">
+            <strong>Aplicație Authenticator</strong>
+            <span>Folosește codul din Microsoft/Google Authenticator</span>
+          </div>
+        </button>
+
+        <div class="divider">sau</div>
+
+        <button class="btn-method secondary" (click)="selectMethod('EMAIL')">
+          <div class="method-icon">✉️</div>
+          <div class="method-text">
+            <strong>Cod pe Email</strong>
+            <span>Vom trimite un cod de 6 cifre pe adresa ta</span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Enter Code -->
+    <div *ngIf="step() === 'enter-code'" class="step-verify">
+      
+      <div *ngIf="selectedMethod() === 'TOTP'" class="method-header">
+        <h3>Aplicație Authenticator</h3>
+        <p>Introdu codul din aplicație pentru a continua.</p>
+      </div>
+
+      <div *ngIf="selectedMethod() === 'EMAIL'" class="method-header">
+        <h3>Verificare Email</h3>
+        <p>Am trimis un cod de 6 cifre pe emailul tău. Codul este valabil 10 minute.</p>
+        <button *ngIf="!isLoading()" class="btn-link" (click)="resendEmail()">Trimite din nou</button>
+      </div>
+
+      <div class="input-group">
+        <input 
+          type="text" 
+          [(ngModel)]="verifyCode" 
+          maxlength="6" 
+          placeholder="123456"
+          (keyup.enter)="onVerify()"
+          [disabled]="isLoading()"
+        />
+      </div>
+
+      <div class="action-buttons">
+        <button class="btn-back" (click)="goBack()" [disabled]="isLoading()">Înapoi</button>
+        <button 
+          class="btn-verify" 
+          (click)="onVerify()" 
+          [disabled]="isLoading() || verifyCode.length < 6">
+          {{ isLoading() ? 'Se verifică...' : 'Verifică' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

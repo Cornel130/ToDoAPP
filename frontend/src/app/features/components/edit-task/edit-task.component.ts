@@ -1,24 +1,26 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TaskeditService } from '../../services/edit/taskedit.service'; // ✅ serviciu corect
-import { TaskDTO } from '../../models/task.model';
+import { TaskService } from '../../services/task/task.service';
+import { TaskRequest } from '../../models/task.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-edit-task',
+  standalone: true,
   templateUrl: './edit-task.component.html',
-  imports: [
-    ReactiveFormsModule
-  ],
+  imports: [ReactiveFormsModule, NgIf],
   styleUrls: ['./edit-task.component.css']
 })
 export class EditTaskComponent implements OnInit {
   taskId!: number;
   taskForm!: FormGroup;
+  minDate: string = new Date().toISOString().split('T')[0];
+  errorMessage: string = '';
 
   constructor(
     private route: ActivatedRoute,
-    private taskEditService: TaskeditService, // ✅ folosește serviciul nou
+    private taskService: TaskService,
     private fb: FormBuilder,
     private router: Router
   ) {}
@@ -33,18 +35,36 @@ export class EditTaskComponent implements OnInit {
       status: [false]
     });
 
-    this.taskEditService.getTaskById(this.taskId).subscribe(task => {
+    this.taskService.getTaskById(this.taskId).subscribe(task => {
       this.taskForm.patchValue(task);
     });
   }
 
   onSubmit(): void {
-    if (this.taskForm.invalid) return;
+    this.errorMessage = '';
 
-    const updatedTask: TaskDTO = { id: this.taskId, ...this.taskForm.value };
-    this.taskEditService.updateTask(this.taskId, updatedTask).subscribe(() => {
-      alert('Task actualizat cu succes!');
-      this.router.navigate(['/dashboard']);
+    if (this.taskForm.invalid) {
+      this.taskForm.markAllAsTouched();
+      return;
+    }
+
+    const deadline = this.taskForm.value.deadline;
+
+    if (deadline && deadline < this.minDate) {
+      this.errorMessage = 'Deadline cannot be in the past.';
+      return;
+    }
+
+    const updatedTask: TaskRequest = this.taskForm.value;
+
+    this.taskService.updateTask(this.taskId, updatedTask).subscribe({
+      next: () => {
+        alert('Task actualizat cu succes!');
+        this.router.navigate(['/dashboard']);
+      },
+      error: (err) => {
+        this.errorMessage = err.error?.message || 'Failed to update task.';
+      }
     });
   }
 }

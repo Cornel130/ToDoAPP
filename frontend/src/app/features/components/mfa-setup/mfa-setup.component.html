@@ -1,0 +1,37 @@
+<div class="mfa-container">
+  <div class="mfa-card">
+    <h2>Configurează Autentificarea în 2 Pași (MFA)</h2>
+    <p class="subtitle">Scanează codul QR cu aplicația Microsoft Authenticator (sau Google Authenticator).</p>
+
+    <div *ngIf="isLoading()" class="loading">
+      Se încarcă codul QR...
+    </div>
+
+    <div *ngIf="errorMessage()" class="error-alert">
+      {{ errorMessage() }}
+    </div>
+
+    <div *ngIf="!isLoading() && qrCodeUrl()" class="qr-section">
+      <img [src]="qrCodeUrl()" alt="MFA QR Code" class="qr-image" />
+    </div>
+
+    <div *ngIf="!isLoading()" class="verify-section">
+      <label for="code">Introdu codul de 6 cifre generat de aplicație:</label>
+      <input 
+        type="text" 
+        id="code" 
+        [(ngModel)]="verifyCode" 
+        maxlength="6" 
+        placeholder="123456"
+        (keyup.enter)="onVerify()"
+      />
+      
+      <button 
+        class="btn-verify" 
+        (click)="onVerify()" 
+        [disabled]="isVerifying() || verifyCode.length !== 6">
+        {{ isVerifying() ? 'Se verifică...' : 'Verifică și Activează' }}
+      </button>
+    </div>
+  </div>
+</div>

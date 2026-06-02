@@ -1,24 +1,29 @@
 <div class="login_container">
-  <form class="login_form" [formGroup]="loginForm" #formDirective="ngForm" (ngSubmit)="onSubmit(formDirective)">
+  <form class="login_form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
     <h2 class="welcome_text">Welcome to your ToDo App!</h2>
 
     <div>
       <mat-form-field appearance="fill">
-        <mat-label>Enter username:</mat-label>
+        <mat-label>Enter username:*</mat-label>
         <input type="text" formControlName="username" matInput />
+        <mat-error *ngIf="loginForm.get('username')?.touched && loginForm.get('username')?.invalid">
+          Username is required.
+        </mat-error>
       </mat-form-field>
     </div>
 
     <div>
       <mat-form-field appearance="fill">
-        <mat-label>Enter password:</mat-label>
+        <mat-label>Enter password:*</mat-label>
         <input type="password" formControlName="password" matInput />
+        <mat-error *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid">
+          Password is required.
+        </mat-error>
       </mat-form-field>
     </div>
 
     <button type="submit" mat-raised-button color="primary">Submit</button>
 
-    <!-- Afișare eroare elegantă -->
     <div *ngIf="errorMessage()" class="login-error">
       {{ errorMessage() }}
     </div>
